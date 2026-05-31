@@ -1,31 +1,40 @@
 # RoadSoS - Emergency Road Safety Assistant
-## National Road Safety Hackathon 2026 | IIT Madras
 
-### How to Run:
+Submission-ready build for **Road Safety Hackathon 2026 (RoadSoS)**.
 
-**Option 1 - Direct (No server needed):**
-Just double-click `index.html` in your browser!
+## Final entrypoint (canonical build)
+- ✅ Open `./index.html` directly (double-click supported, no server required)
+- ✅ Structured database export: `./data/services.json`
+- ✅ Schema doc: `./data/schema.md`
+- ✅ Data credibility doc: `./DATA_SOURCES.md`
 
-**Option 2 - Full Python Server:**
+## Archived build artifacts
+- Previous duplicate build folder is archived at:
+  - `./archive/roadsos_final/`
+- Use only root `index.html` for final submission/demo.
+
+## Features
+- Embedded emergency services database for offline-friendly `file://` use
+- Manual city search + GPS detection
+- Distance-based nearest sorting
+- Service filters (trauma centre, hospital, ambulance, police, towing, emergency)
+- **Golden Hour Mode**: top 3 nearest trauma centres, ambulances, and police
+- **Share My Location**: copy-ready emergency message with coordinates + map links
+- OpenStreetMap map links (no paid APIs)
+
+## Running options
+### Option 1 (recommended): No server
+Double-click `index.html`.
+
+### Option 2 (optional): Local Python server
+`app.py` is optional and only for local serving/testing convenience.
+
 ```bash
-pip install nothing  # No extra packages needed!
 python app.py
-# Open: http://localhost:8080
+# open http://localhost:8080
 ```
 
-### Packages Used:
-- Python 3.x (built-in only)
-- sqlite3 (built-in)
-- http.server (built-in)
-- json (built-in)
-- urllib (built-in)
+> Front-end emergency lookup works from the embedded dataset in `index.html` and does not require backend APIs.
 
-### No external packages required!
-
-### Features:
-- 49 emergency services in database
-- GPS auto-detection
-- City name search (20+ cities)
-- Filter by service type
-- Offline mode support
-- Global coverage (India, USA, UK, UAE, Australia, Canada, Germany)
+## Validation / Testing
+See `./TESTING.md` for full manual checklist.
