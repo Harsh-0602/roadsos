@@ -220,6 +220,7 @@ class RoadSoSHandler(SimpleHTTPRequestHandler):
         pass
 
 if __name__ == "__main__":
+    # This is optional. index.html works standalone.
     init_db()
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     server = HTTPServer(("0.0.0.0", 8080), RoadSoSHandler)

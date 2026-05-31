@@ -147,6 +147,19 @@
     cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; text-decoration:none;
   }
   .btn-map:hover { border-color:var(--blue); color:var(--blue); }
+  .btn-share {
+    background:#FFF7ED; color:#C2410C; border:1.5px solid #FDBA74; padding:9px 12px;
+    border-radius:10px; font-family:'DM Sans',sans-serif; font-weight:600; font-size:12px;
+    cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s;
+  }
+  .btn-share:hover { background:#FFEDD5; }
+  .quick-action-row { margin-top:10px; text-align:center; display:none; }
+  .btn-golden {
+    margin:0 auto; background:#B91C1C; color:white; border:none; padding:10px 18px; border-radius:10px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:14px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-golden:hover { background:#991B1B; }
 
   .empty-state { text-align:center; padding:4rem 2rem; color:var(--gray); }
   .empty-icon { font-size:4rem; margin-bottom:1rem; }
@@ -160,6 +173,8 @@
     .cards-grid{grid-template-columns:1fr;}
     .emergency-strip{gap:1rem;padding:0.75rem 1rem;}
     .em-num{font-size:18px;}
+    .card-footer{flex-wrap:wrap;}
+    .btn-call,.btn-map,.btn-share{flex:1 1 calc(50% - 4px); justify-content:center;}
   }
 </style>
 </head>
@@ -204,6 +219,9 @@
       <button class="btn-locate" onclick="useGPS()">📡 Use My GPS</button>
     </div>
     <div id="status-bar"></div>
+    <div id="quick-action-row" class="quick-action-row">
+      <button class="btn-golden" onclick="activateGoldenHour()">⏱️ Golden Hour Mode</button>
+    </div>
     <div style="margin-top:10px;text-align:center">
       <button class="btn-locate" style="margin:0 auto;background:var(--dark)" onclick="searchByInput()">🔍 Search Nearby Services</button>
     </div>
@@ -365,6 +383,8 @@ const CITY_COORDS = {
 
 let allResults = [];
 let currentFilter = 'all';
+let currentLocation = null;
+let displayedServices = [];
 
 function haversineDistance(lat1,lon1,lat2,lon2){
   const R=6371;
@@ -390,6 +410,10 @@ function setStatus(msg,type){
   bar.className=type; bar.innerHTML=msg; bar.style.display='flex';
 }
 
+function toggleGoldenHourButton(show){
+  document.getElementById('quick-action-row').style.display = show ? 'block' : 'none';
+}
+
 function useGPS(){
   if(!navigator.geolocation){setStatus('❌ GPS not supported on this device','error');return;}
   setStatus('<span class="spinner"></span> Detecting your location...','loading');
@@ -398,14 +422,16 @@ function useGPS(){
       const lat=pos.coords.latitude, lon=pos.coords.longitude;
       const country=document.getElementById('country-select').value;
       setStatus(`✅ GPS location found!`,'success');
+      currentLocation={lat,lon,label:`Current GPS, ${country}`};
       allResults=getNearby(lat,lon,country);
       renderCards(allResults);
+      toggleGoldenHourButton(true);
       document.getElementById('filter-section').style.display='block';
       document.getElementById('results-section').style.maxWidth='900px';
       document.getElementById('results-section').style.margin='0 auto';
       document.getElementById('results-section').style.padding='0 1rem 3rem';
     },
-    ()=>setStatus('⚠️ GPS denied — type your city name below','error')
+    ()=>{setStatus('⚠️ GPS denied — type your city name below','error');toggleGoldenHourButton(false);}
   );
 }
 
@@ -423,16 +449,20 @@ function searchByInput(){
 
   if(coords){
     setStatus(`✅ Showing services near ${raw}`,'success');
+    currentLocation={lat:coords[0],lon:coords[1],label:`${raw}, ${country}`};
     allResults=getNearby(coords[0],coords[1],country);
     renderCards(allResults);
+    toggleGoldenHourButton(true);
     document.getElementById('filter-section').style.display='block';
     document.getElementById('results-section').style.maxWidth='900px';
     document.getElementById('results-section').style.margin='0 auto';
     document.getElementById('results-section').style.padding='0 1rem 3rem';
   } else {
     setStatus(`⚠️ City not found — showing ${country} national emergency numbers`,'error');
+    currentLocation=null;
     allResults=DB.filter(s=>s.country===country && (s.city==='All Cities'||s.city==='All India')).map(s=>({...s,distance_km:0}));
     renderCards(allResults);
+    toggleGoldenHourButton(false);
     document.getElementById('filter-section').style.display='block';
   }
 }
@@ -448,8 +478,58 @@ function filterResults(type,btn){
 const EMOJI={trauma_centre:'🏥',hospital:'🏨',ambulance:'🚑',police:'🚔',towing:'🚛',emergency:'🆘',fire:'🚒'};
 const LABEL={trauma_centre:'Trauma Centre',hospital:'Hospital',ambulance:'Ambulance',police:'Police Station',towing:'Towing Service',emergency:'Emergency',fire:'Fire Brigade'};
 
-function renderCards(services){
+function activateGoldenHour(){
+  if(!allResults.length){setStatus('⚠️ Detect location first to use Golden Hour Mode','error');return;}
+  const trauma=allResults.filter(s=>s.type==='trauma_centre').slice(0,3);
+  const ambulance=allResults.filter(s=>s.type==='ambulance').slice(0,3);
+  const police=allResults.filter(s=>s.type==='police').slice(0,3);
+  const golden=[...trauma,...ambulance,...police].sort((a,b)=>a.distance_km-b.distance_km);
+  setStatus('🚨 Golden Hour Mode active: nearest trauma, ambulance, and police highlighted','success');
+  renderCards(golden,'Golden Hour Mode');
+}
+
+function copyWithFallback(text){
+  const area=document.createElement('textarea');
+  area.value=text;
+  area.setAttribute('readonly','');
+  area.style.position='fixed';
+  area.style.opacity='0';
+  document.body.appendChild(area);
+  area.focus();
+  area.select();
+  try{
+    if(document.execCommand('copy')){
+      setStatus('✅ Share text copied to clipboard','success');
+    } else {
+      window.prompt('Copy emergency location details:', text);
+    }
+  } catch(_e){
+    window.prompt('Copy emergency location details:', text);
+  }
+  document.body.removeChild(area);
+}
+
+async function shareMyLocation(index){
+  const s=displayedServices[index];
+  if(!s){return;}
+  const lat=(currentLocation?.lat ?? s.lat).toFixed(5);
+  const lon=(currentLocation?.lon ?? s.lon).toFixed(5);
+  const place=currentLocation?.label ?? `${s.city}, ${s.country}`;
+  const mapLink=`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}&zoom=15`;
+  const msg=`Emergency at [${lat},${lon}] [${place}] - ${mapLink}`;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(msg);
+      setStatus('✅ Share text copied to clipboard','success');
+      return;
+    }
+  } catch(_e){}
+  copyWithFallback(msg);
+}
+
+function renderCards(services,modeLabel=''){
   const container=document.getElementById('results-section');
+  displayedServices = services || [];
   if(!services||services.length===0){
     container.innerHTML=`<div class="empty-state"><div class="empty-icon">😔</div><h3>No services found for this filter</h3><p>Try selecting "All Services"</p></div>`;
     return;
@@ -462,7 +542,7 @@ function renderCards(services){
   container.innerHTML=`
     <div class="results-header">
       <div class="results-count"><span>${services.length}</span> Services Found</div>
-      <div style="font-size:12px;color:var(--gray)">Sorted by distance</div>
+      <div style="font-size:12px;color:var(--gray)">${modeLabel?modeLabel+' · ':''}Sorted by distance</div>
     </div>
     <div class="cards-grid">
       ${services.map((s,i)=>`
@@ -482,6 +562,7 @@ function renderCards(services){
           <div class="card-footer">
             <a href="tel:${s.phone}" class="btn-call">📞 Call ${s.phone}</a>
             <a href="${mapUrl(s)}" target="_blank" class="btn-map">🗺️ Map</a>
+            <button class="btn-share" onclick="shareMyLocation(${i})">📍 Share My Location</button>
           </div>
         </div>`).join('')}
     </div>`;
