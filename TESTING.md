@@ -1,8 +1,8 @@
 # RoadSoS Manual Testing Checklist
 
 ## Environment
-- [ ] Open `/tmp/workspace/Harsh-0602/roadsos/index.html` directly by double-click (no server)
-- [ ] Optional: run `python app.py` and open `http://localhost:8080/index.html`
+- [ ] Open `./index.html` directly by double-click (no server)
+- [ ] Optional: run `python app.py` and open `http://localhost:8080`
 
 ## Functional checks
 - [ ] GPS allowed: click **Use My GPS** and verify nearby services appear

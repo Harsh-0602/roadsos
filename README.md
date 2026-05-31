@@ -3,14 +3,14 @@
 Submission-ready build for **Road Safety Hackathon 2026 (RoadSoS)**.
 
 ## Final entrypoint (canonical build)
-- ✅ Open `/tmp/workspace/Harsh-0602/roadsos/index.html` directly (double-click supported, no server required)
-- ✅ Structured database export: `/tmp/workspace/Harsh-0602/roadsos/data/services.json`
-- ✅ Schema doc: `/tmp/workspace/Harsh-0602/roadsos/data/schema.md`
-- ✅ Data credibility doc: `/tmp/workspace/Harsh-0602/roadsos/DATA_SOURCES.md`
+- ✅ Open `./index.html` directly (double-click supported, no server required)
+- ✅ Structured database export: `./data/services.json`
+- ✅ Schema doc: `./data/schema.md`
+- ✅ Data credibility doc: `./DATA_SOURCES.md`
 
 ## Archived build artifacts
 - Previous duplicate build folder is archived at:
-  - `/tmp/workspace/Harsh-0602/roadsos/archive/roadsos_final/`
+  - `./archive/roadsos_final/`
 - Use only root `index.html` for final submission/demo.
 
 ## Features
@@ -31,10 +31,10 @@ Double-click `index.html`.
 
 ```bash
 python app.py
-# open http://localhost:8080/index.html
+# open http://localhost:8080
 ```
 
 > Front-end emergency lookup works from the embedded dataset in `index.html` and does not require backend APIs.
 
 ## Validation / Testing
-See `/tmp/workspace/Harsh-0602/roadsos/TESTING.md` for full manual checklist.
+See `./TESTING.md` for full manual checklist.

@@ -75,6 +75,10 @@
   }
   .btn-golden { background:var(--red); color:white; }
   .btn-share { background:var(--dark); color:white; }
+  .btn-quick:focus-visible {
+    outline:3px solid rgba(27,79,219,0.45);
+    outline-offset:2px;
+  }
 
   #status-bar { display:none; align-items:center; gap:8px; margin-top:12px; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:500; }
   #status-bar.loading { background:#EFF6FF; color:var(--blue); display:flex; }
@@ -216,8 +220,8 @@
       <button class="btn-locate" style="margin:0 auto;background:var(--dark)" onclick="searchByInput()">🔍 Search Nearby Services</button>
     </div>
     <div class="quick-actions">
-      <button class="btn-quick btn-golden" onclick="showGoldenHourMode()">⚡ Golden Hour Mode</button>
-      <button class="btn-quick btn-share" onclick="shareMyLocation()">📤 Share My Location</button>
+      <button class="btn-quick btn-golden" onclick="showGoldenHourMode()" aria-label="Activate Golden Hour Mode to show nearest trauma centres, ambulances and police">⚡ Golden Hour Mode</button>
+      <button class="btn-quick btn-share" onclick="shareMyLocation()" aria-label="Share current location with emergency contacts">📤 Share My Location</button>
     </div>
   </div>
 </div>
@@ -472,7 +476,7 @@ function filterResults(type,btn){
 
 function showGoldenHourMode(){
   if(!allResults.length){
-    setStatus('⚠️ Use GPS or city search first to enable Golden Hour Mode','error');
+    setStatus('⚠️ Please use GPS or search a city first to find nearby services','error');
     return;
   }
   const trauma = allResults.filter(s=>s.type==='trauma_centre').slice(0,3);
@@ -498,12 +502,16 @@ function shareMyLocation(){
   const googleLink = `https://maps.google.com/?q=${lat},${lon}`;
   const message = `🚨 RoadSoS - My Location\n📍 Coordinates: ${lat}, ${lon}\n🏙️ Place: ${place}\n🗺️ OSM: ${osmLink}\n🧭 Google Maps: ${googleLink}`;
 
-  if(navigator.clipboard && window.isSecureContext){
+  if(navigator.clipboard?.writeText && window.isSecureContext){
     navigator.clipboard.writeText(message)
       .then(()=>setStatus('✅ Share message copied to clipboard','success'))
-      .catch(()=>window.prompt('Copy and share this location message:', message));
+      .catch(()=>{
+        setStatus('⚠️ Clipboard access denied. Please copy manually from prompt.','error');
+        window.prompt('Copy and share this location message:', message);
+      });
     return;
   }
+  setStatus('⚠️ Clipboard is unavailable here. Please copy manually from prompt.','error');
   window.prompt('Copy and share this location message:', message);
 }
 
